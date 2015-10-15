@@ -11,55 +11,44 @@ echo "Please enter your username for the user to be created and git"
 echo -n '> '
 read your_username
 
-echo "Please enter your email for git: "
-echo -n '> '
-read your_email
-
-echo "Created user ${your_username} with email ${your_email}."
+# echo "Please enter your email for git: "
+# echo -n '> '
+# read your_email
 
 echo "Installing core package updates & build-essential & git"
-# update apt-get
 sudo apt-get update
 sudo apt-get upgrade
-
-# c++ compliler etc.
-sudo apt-get install build-essential
-
-# install git
+sudo apt-get install build-essential # c++ compliler etc.
 sudo apt-get install git
 
-# setup timezone
+echo 'setting timezone to America/New_York'
 echo 'America/New_York' | sudo tee /etc/timezone > /dev/null
-# echo 'America/New_York' | sudo cat > /etc/timezone
 
-# add user
+echo "creating user ${your_username} and adding him/her to admin group"
 sudo adduser ${your_username}
-
-# change the group of that user (this gives them sudo rights)
 sudo adduser ${your_username} admin
 
 #define home
 my_home=/home/${your_username}
 
-echo 'log in as you'
-cd ${my_home}
-
 echo "remove default info dump on ssh login"
 touch ${my_home}/.hushlogin
 
-echo "enable vi mode (log out/in to see effects)"
+echo "enable vi mode"
 echo 'set editing-mode vi' | sudo tee ${my_home}/.inputrc > /dev/null
-
 
 echo "set up ssh for ${your_username}"
 sudo cp -R /home/ubuntu/.ssh ${my_home}/
 
-echo "make .ssh belong to us"
+echo "make .ssh/ belong to us"
 sudo chown -R ${your_username}:admin ${my_home}/.ssh
 
+echo 'copy ssh public key to authorized_keys'
 cat ${my_home}/conf_scalica/id_rsa.tmp | sudo tee ${my_home}/.ssh/authorized_keys > /dev/null
+sudo rm ${my_home}/conf_scalica/id_rsa.tmp
 
 ########## time to set things us! ##########
+echo 'basic system setup complete, installing django etc...'
 
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get install libmysqlclient-dev -y
@@ -80,7 +69,7 @@ sudo pip install Django==1.8
 sudo pip install django-debug-toolbar==1.3.2
 sudo pip install MySQL-python==1.2.5
 
-echo "get the source for scalica"
+echo "get source code for scalica"
 sudo git clone http://23.236.49.28/git/scalica.git scalica
 
 echo "set up the database"
@@ -93,19 +82,19 @@ sudo python manage.py migrate
 sudo chown -R ${your_username}:${your_username} ${install_dir}
 sudo chown ${your_username}:${your_username} /tmp/db.debug.log
 
-echo "enable easy access to manage the server"
+echo "enabling easy access to manage the server"
 sudo ln -s ${install_dir}/scalica/web/scalica/manage.py ${my_home}/manage.py
-
-echo "write logs to disk"
-sudo touch ${my_home}/server.log
-
 sudo chown -R ${your_username}:${your_username} ${my_home}/manage.py
-sudo chown -R ${your_username}:${your_username} ${my_home}/server.log
 
-# Start the dev server and run the background--with logs saved to home
-# sudo python ${my_home}/manage.py runserver 0.0.0.0:8000 >> ${my_home}/server.log &
-sudo python ${my_home}/manage.py runserver 0.0.0.0:8000
-	
+echo 'make issue.net readable by uncommenting: # Banner /etc/issue.net'
+sudo vim /etc/ssh/sshd_config
+
+echo 'writing banner text to issue.net from another file'
+sudo cat ./banner.txt > /etc/issue.net
+
+echo 'reloading ssh'
+sudo service ssh reload
+
 # echo "setting git global configs"
 # git config --global user.name ${your_username}
 # git config --global user.email ${your_email}
@@ -117,17 +106,3 @@ sudo python ${my_home}/manage.py runserver 0.0.0.0:8000
 # git config --global alias.co checkout
 # git config --global alias.br branch
 # git config --global alias.ci commit
-
-# apt-get install zsh
-
-# change your shell to zsh
-# chsh -s `which zsh`
-
-# make issue.net readable by uncommenting: # Banner /etc/issue.net
-sudo vim /etc/ssh/sshd_config
-
-# write banner text to issue.net from another file
-sudo cat ./banner.txt > /etc/issue.net
-
-# reload ssh
-sudo service ssh reload

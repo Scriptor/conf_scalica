@@ -48,3 +48,7 @@ Then, run the following commands:
 Now you should be able to log in as we planned above:
 
 	$ ssh scalica
+	
+And run the server with:
+	
+	$ python manage.py runserver 0:8000
