@@ -47,7 +47,7 @@ echo 'copy ssh public key to authorized_keys'
 cat ${my_home}/conf_scalica/id_rsa.tmp | sudo tee ${my_home}/.ssh/authorized_keys > /dev/null
 sudo rm ${my_home}/conf_scalica/id_rsa.tmp
 
-########## time to set things us! ##########
+########## time to set things up! ##########
 echo 'basic system setup complete, installing django etc...'
 
 export DEBIAN_FRONTEND=noninteractive
